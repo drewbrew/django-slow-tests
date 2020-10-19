@@ -1,4 +1,5 @@
 import glob
+import importlib
 import json
 import time
 import os
@@ -105,9 +106,8 @@ class TimingSuite(TestSuite):
             if result.shouldStop:
                 break
 
-            start_time = _time()
-
             if _isnotsuite(test):
+                start_time = _time()
                 self._tearDownPreviousClass(test, result)
                 self._handleModuleFixture(test, result)
                 self._handleClassSetUp(test, result)
@@ -116,6 +116,13 @@ class TimingSuite(TestSuite):
                 if (getattr(test.__class__, '_classSetupFailed', False) or
                         getattr(result, '_moduleSetUpFailed', False)):
                     continue
+                self.save_test_time(
+                    f'{test.__class__.__module__}.{test.__class__.__name__}.setUp '
+                    f'({importlib.import_module(test.__class__.__module__).__file__})',
+                    _time() - start_time
+                )
+
+            start_time = _time()
 
             if not debug:
                 test(result)
